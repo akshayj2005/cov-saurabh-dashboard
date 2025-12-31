@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COV Invoice Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+
+        :root {
+            --primary: #002b5b;
+            --accent-teal: #00a6a6;
+            --soft-bg: #f2f9ff;
+            --highlight: #38b6ff;
+            --text-dark: #012a4a;
+            --white: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            background: var(--soft-bg);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: -320px;
+            height: 100vh;
+            z-index: 999;
+            overflow-y: auto;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .sidebar::after {
+            content: "";
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 350px;
+            height: 350px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+
+        .logo-section {
+            position: relative;
+            z-index: 2;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .logo-section img {
+            height: 70px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .nav-section {
+            position: relative;
+            z-index: 2;
+            color: var(--white);
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: var(--white);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 1002;
+        }
+
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background-color: var(--white);
+            border-radius: 3px;
+            transition: all 0.5s ease;
+            transform-origin: center;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(10.5px) rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(-10.5px) rotate(-45deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: var(--white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-left: 0;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.shifted {
+            margin-left: 320px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 43, 91, 0.15);
+            position: relative;
+            z-index: 100;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--white);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .icon-btn i {
+            color: var(--white);
+            font-size: 18px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .username {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--white);
+        }
+
+        .profile-pic {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 600;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-btn {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--white);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logout-btn i {
+            color: #ff3366;
+            font-size: 20px;
+        }
+
+        .logout-tooltip {
+            position: absolute;
+            top: 50%;
+            right: 55px;
+            transform: translateY(-50%);
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .logout-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -6px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid var(--text-dark);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        .logout-btn:hover .logout-tooltip {
+            opacity: 1;
+        }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            padding: 40px;
+            flex: 1;
+            background: linear-gradient(135deg, rgba(69, 104, 179, 0.15) 0%, rgba(0, 166, 166, 0.05) 100%);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: "Poppins", sans-serif;
+            box-shadow: 0 2px 8px rgba(0, 43, 91, 0.08);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 43, 91, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--highlight);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(56, 182, 255, 0.3);
+        }
+
+        /* Invoice Content */
+        .invoice-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 30px;
+            min-height: 500px;
+        }
+
+        /* Left Card */
+        .invoice-card {
+            background: linear-gradient(135deg, #4568b3 0%, var(--accent-teal) 100%);
+            border-radius: 20px;
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 8px 30px rgba(69, 104, 179, 0.4);
+            position: relative;
+            overflow: hidden;
+            height: fit-content;
+        }
+
+        .invoice-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .invoice-button {
+            position: relative;
+            z-index: 2;
+            padding: 16px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Poppins", sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-dashboard {
+            background: #00ff00;
+            color: var(--text-dark);
+        }
+
+        .btn-dashboard:hover {
+            background: #00cc00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.4);
+        }
+
+        .btn-raise {
+            background: var(--white);
+            color: var(--text-dark);
+        }
+
+        .btn-raise:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+        }
+
+        .logo-circle {
+            position: relative;
+            z-index: 2;
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto 0;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-circle i {
+            font-size: 60px;
+            color: var(--white);
+        }
+
+        /* Right Panel */
+        .invoice-panel {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 43, 91, 0.1);
+            min-height: 400px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #001a33;
+            padding: 25px 40px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-content a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-content a:hover {
+            color: var(--accent-teal);
+        }
+
+        .footer-content p {
+            color: white;
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 300px;
+                left: -300px;
+            }
+
+            .main-content.shifted {
+                margin-left: 300px;
+            }
+
+            .top-bar {
+                padding: 15px 20px;
+            }
+
+            .dashboard-title {
+                font-size: 20px;
+            }
+
+            .username {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 30px 20px;
+            }
+
+            .invoice-content {
+                grid-template-columns: 1fr;
+            }
+
+            .invoice-card {
+                padding: 35px 25px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+                padding: 70px 25px 25px 25px;
+            }
+
+            .main-content.shifted {
+                margin-left: 280px;
+            }
+
+            .top-bar {
+                padding: 12px 15px;
+            }
+
+            .dashboard-title {
+                font-size: 18px;
+            }
+
+            .content-wrapper {
+                padding: 20px 15px;
+            }
+
+            .tabs {
+                gap: 8px;
+            }
+
+            .tab {
+                padding: 10px 20px;
+                font-size: 14px;
+                flex: 1;
+                text-align: center;
+            }
+
+            .invoice-panel {
+                padding: 30px 25px;
+            }
+
+            .invoice-button {
+                padding: 14px 25px;
+                font-size: 15px;
+            }
+
+            .logo-circle {
+                width: 120px;
+                height: 120px;
+            }
+
+            .logo-circle i {
+                font-size: 50px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 260px;
+                left: -260px;
+                padding: 65px 20px 20px 20px;
+            }
+
+            .main-content.shifted {
+                margin-left: 260px;
+            }
+
+            .dashboard-title {
+                font-size: 16px;
+            }
+
+            .tab {
+                padding: 8px 15px;
+                font-size: 13px;
+            }
+
+            .invoice-card {
+                padding: 30px 20px;
+            }
+
+            .invoice-button {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+
+            .logo-circle {
+                width: 100px;
+                height: 100px;
+            }
+
+            .logo-circle i {
+                font-size: 40px;
+            }
+
+            .invoice-panel {
+                padding: 25px 20px;
+            }
+
+            .footer {
+                padding: 20px 20px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .footer-legal {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-section">
+                <div class="logo-container">
+                    <div>
+                        <img id='logo' src="assets/Logo.avif" height="70px" alt="">
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-item" onclick="window.location.href='index.html'">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Personal Details</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='coursedet.html'">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Course Details</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='schedule.html'">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedule</span>
+                </div>
+                <div class="nav-item active">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Invoice</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="dashboard-title">DASHBOARD</h1>
+                </div>
+                <div class="top-bar-right">
+                    <div class="notification-icons">
+                        <button class="icon-btn">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="icon-btn">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                    </div>
+                    <div class="user-profile">
+                        <div class="profile-pic"></div>
+                        <span class="username">Username</span>
+                    </div>
+                    <button class="logout-btn">
+                        <i class="fas fa-power-off"></i>
+                        <span class="logout-tooltip">Log Out</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Wrapper -->
+            <div class="content-wrapper">
+                <div class="tabs">
+                    <button class="tab">Registration</button>
+                    <button class="tab">Schedule</button>
+                    <button class="tab active">Invoice</button>
+                </div>
+
+                <div class="invoice-content">
+                    <!-- Left Card -->
+                    <div class="invoice-card">
+                        <button class="invoice-button btn-dashboard">Dashboard</button>
+                        <button class="invoice-button btn-raise">Raise Invoice</button>
+                        <div class="logo-circle">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel - Empty -->
+                    <div class="invoice-panel">
+                        <!-- Content will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer-content">
+                    <p class="copyright">
+                        © 2025 Confederation of Valuers — All Rights Reserved
+                    </p>
+
+                    <div class="footer-legal">
+                        <a href="faq.html">FAQ</a>
+                        <a href="TandC.html">Terms & Conditions</a>
+                        <a href="policy.html">Policy</a>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Hamburger menu functionality
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+            mainContent.classList.toggle('shifted');
+        });
+
+        // Close sidebar when clicking on nav items
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    hamburger.classList.remove('active');
+                    sidebar.classList.remove('active');
+                    mainContent.classList.remove('shifted');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

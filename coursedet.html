@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COV Course Details</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap");
+
+        :root {
+            --primary: #002b5b;
+            --accent-teal: #00a6a6;
+            --soft-bg: #f2f9ff;
+            --highlight: #38b6ff;
+            --text-dark: #012a4a;
+            --white: #ffffff;
+            --red-accent: #ff3366;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            background: var(--soft-bg);
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: -320px;
+            height: 100vh;
+            z-index: 999;
+            overflow-y: auto;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .sidebar::before {
+            content: "";
+            position: absolute;
+            top: -20%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .sidebar::after {
+            content: "";
+            position: absolute;
+            bottom: -30%;
+            left: -20%;
+            width: 350px;
+            height: 350px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
+        }
+
+        .logo-section {
+            position: relative;
+            z-index: 2;
+            margin-bottom: 60px;
+            text-align: center;
+        }
+
+        .logo-section img {
+            height: 70px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .nav-section {
+            position: relative;
+            z-index: 2;
+            color: var(--white);
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .nav-item.active {
+            background: var(--white);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 1002;
+        }
+
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background-color: var(--white);
+            border-radius: 3px;
+            transition: all 0.5s ease;
+            transform-origin: center;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(10.5px) rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(-10.5px) rotate(-45deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background: var(--white);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-left: 0;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.shifted {
+            margin-left: 320px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 43, 91, 0.15);
+            position: relative;
+            z-index: 100;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--white);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .notification-icons {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .icon-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .icon-btn i {
+            color: var(--white);
+            font-size: 18px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .username {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--white);
+        }
+
+        .profile-pic {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 600;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .logout-btn {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--white);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .logout-btn i {
+            color: #ff3366;
+            font-size: 20px;
+        }
+
+        .logout-tooltip {
+            position: absolute;
+            top: 50%;
+            right: 55px;
+            transform: translateY(-50%);
+            background: var(--text-dark);
+            color: var(--white);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .logout-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            right: -6px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid var(--text-dark);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+        }
+
+        .logout-btn:hover .logout-tooltip {
+            opacity: 1;
+        }
+
+        /* Content Wrapper */
+        .content-wrapper {
+            padding: 40px;
+            flex: 1;
+            background: linear-gradient(135deg, rgba(0, 43, 91, 0.03) 0%, rgba(0, 166, 166, 0.03) 100%);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--white);
+            color: var(--text-dark);
+            font-family: "Poppins", sans-serif;
+            box-shadow: 0 2px 8px rgba(0, 43, 91, 0.08);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(0, 43, 91, 0.3);
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--highlight);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(56, 182, 255, 0.3);
+        }
+
+        /* Main Course Content */
+        .course-content {
+            margin-bottom: 30px;
+        }
+
+        /* Right Panel */
+        .right-panel {
+            width: 100%;
+            background: var(--white);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 43, 91, 0.1);
+        }
+
+        .asset-selector {
+            margin-bottom: 40px;
+        }
+
+        .asset-selector h3 {
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--soft-bg);
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .dropdown-header:hover {
+            border-color: var(--highlight);
+            background: var(--white);
+        }
+
+        .dropdown-header.active {
+            border-color: var(--accent-teal);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(0, 166, 166, 0.1);
+        }
+
+        .dropdown-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-header.active .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border: 2px solid var(--accent-teal);
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0, 43, 91, 0.15);
+            z-index: 10;
+            overflow: hidden;
+            max-height: 0;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-menu.active {
+            max-height: 300px;
+            opacity: 1;
+        }
+
+        .dropdown-item {
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            color: var(--text-dark);
+        }
+
+        .dropdown-item:hover {
+            background: var(--soft-bg);
+        }
+
+        .dropdown-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-teal);
+        }
+
+        /* Asset Classes */
+        .asset-classes {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .asset-class {
+            background: var(--soft-bg);
+            border: 2px solid var(--highlight);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .asset-class:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(56, 182, 255, 0.2);
+        }
+
+        .asset-class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .asset-class h4 {
+            color: var(--primary);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .topic-badge {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            color: var(--white);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .topics-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: "Poppins", sans-serif;
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .topics-input:focus {
+            outline: none;
+            border-color: var(--highlight);
+            box-shadow: 0 0 0 3px rgba(56, 182, 255, 0.2);
+        }
+
+        .topics-input::placeholder {
+            color: #999;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: "Poppins", sans-serif;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            color: var(--white);
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 43, 91, 0.4);
+            background: linear-gradient(135deg, var(--highlight) 0%, var(--accent-teal) 100%);
+        }
+
+        .btn-finish {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent-teal) 100%);
+            color: var(--white);
+        }
+
+        .btn-finish:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 43, 91, 0.4);
+            background: linear-gradient(135deg, var(--highlight) 0%, var(--accent-teal) 100%);
+        }
+
+        /* Footer */
+        .footer {
+            background: #001a33;
+            padding: 25px 40px;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-content a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-content a:hover {
+            color: var(--accent-teal);
+        }
+
+        .footer-content p {
+            color: white;
+        }
+
+        .footer-legal {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 300px;
+                left: -300px;
+            }
+
+            .main-content.shifted {
+                margin-left: 300px;
+            }
+
+            .top-bar {
+                padding: 15px 20px;
+            }
+
+            .dashboard-title {
+                font-size: 20px;
+            }
+
+            .username {
+                display: none;
+            }
+
+            .content-wrapper {
+                padding: 30px 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 280px;
+                left: -280px;
+                padding: 70px 25px 25px 25px;
+            }
+
+            .main-content.shifted {
+                margin-left: 280px;
+            }
+
+            .top-bar {
+                padding: 12px 15px;
+            }
+
+            .dashboard-title {
+                font-size: 18px;
+            }
+
+            .content-wrapper {
+                padding: 20px 15px;
+            }
+
+            .tabs {
+                gap: 8px;
+            }
+
+            .tab {
+                padding: 10px 20px;
+                font-size: 14px;
+                flex: 1;
+                text-align: center;
+            }
+
+            .right-panel {
+                padding: 25px 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .asset-selector h3 {
+                font-size: 17px;
+            }
+
+            .asset-class h4 {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 260px;
+                left: -260px;
+                padding: 65px 20px 20px 20px;
+            }
+
+            .main-content.shifted {
+                margin-left: 260px;
+            }
+
+            .dashboard-title {
+                font-size: 16px;
+            }
+
+            .tab {
+                padding: 8px 15px;
+                font-size: 13px;
+            }
+
+            .right-panel {
+                padding: 20px 15px;
+            }
+
+            .asset-selector h3 {
+                font-size: 16px;
+            }
+
+            .asset-class h4 {
+                font-size: 16px;
+            }
+
+            .dropdown-header {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            .dropdown-item {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            .topics-input {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            .topic-badge {
+                font-size: 12px;
+                padding: 5px 12px;
+            }
+
+            .btn {
+                padding: 12px 30px;
+                font-size: 15px;
+            }
+
+            .footer {
+                padding: 20px 20px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .footer-legal {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo-section">
+                <div class="logo-container">
+                    <div>
+                        <img id='logo' src="assets/Logo.avif" height="70px" alt="">
+                    </div>
+                </div>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-item" onclick="window.location.href='index.html'">
+                    <i class="fas fa-user-edit"></i>
+                    <span>Personal Details</span>
+                </div>
+                <div class="nav-item active">
+                    <i class="fas fa-clipboard-check"></i>
+                    <span>Course Details</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='schedule.html'">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Schedule</span>
+                </div>
+                <div class="nav-item" onclick="window.location.href='invoice.html'">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Invoice</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <button class="hamburger" id="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <h1 class="dashboard-title">DASHBOARD</h1>
+                </div>
+                <div class="top-bar-right">
+                    <div class="notification-icons">
+                        <button class="icon-btn">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="icon-btn">
+                            <i class="fas fa-envelope"></i>
+                        </button>
+                    </div>
+                    <div class="user-profile">
+                        <div class="profile-pic"></div>
+                        <span class="username">Username</span>
+                    </div>
+                    <button class="logout-btn">
+                        <i class="fas fa-power-off"></i>
+                        <span class="logout-tooltip">Log Out</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Wrapper -->
+            <div class="content-wrapper">
+                <div class="tabs">
+                    <button class="tab active">Registration</button>
+                    <button class="tab">Schedule</button>
+                    <button class="tab">Invoice</button>
+                </div>
+
+                <div class="course-content">
+                    <!-- Right Panel -->
+                    <div class="right-panel">
+                        <div class="asset-selector">
+                            <h3>Select Asset Class</h3>
+                            <div class="dropdown">
+                                <div class="dropdown-header" id="dropdownHeader">
+                                    <span id="selectedAsset">Select an asset class</span>
+                                    <i class="fas fa-chevron-down dropdown-icon"></i>
+                                </div>
+                                <div class="dropdown-menu" id="dropdownMenu">
+                                    <label class="dropdown-item">
+                                        <input type="radio" name="assetClass" value="Plant and Machinery">
+                                        <span>Plant and Machinery</span>
+                                    </label>
+                                    <label class="dropdown-item">
+                                        <input type="radio" name="assetClass" value="Land and Building">
+                                        <span>Land and Building</span>
+                                    </label>
+                                    <label class="dropdown-item">
+                                        <input type="radio" name="assetClass" value="Securities or Financial Assets">
+                                        <span>Securities or Financial Assets</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="asset-classes">
+                            <!-- Plant and Machinery -->
+                            <div class="asset-class">
+                                <div class="asset-class-header">
+                                    <h4>Plant and Machinery</h4>
+                                    <span class="topic-badge">Topics</span>
+                                </div>
+                                <input type="text" class="topics-input" placeholder="Enter topics separated by commas">
+                            </div>
+
+                            <!-- Land and Building -->
+                            <div class="asset-class">
+                                <div class="asset-class-header">
+                                    <h4>Land and Building</h4>
+                                    <span class="topic-badge">Topics</span>
+                                </div>
+                                <input type="text" class="topics-input" placeholder="Enter topics separated by commas">
+                            </div>
+
+                            <!-- Securities or Financial Assets -->
+                            <div class="asset-class">
+                                <div class="asset-class-header">
+                                    <h4>Securities or Financial Assets</h4>
+                                    <span class="topic-badge">Topics</span>
+                                </div>
+                                <input type="text" class="topics-input" placeholder="Enter topics separated by commas">
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <button class="btn btn-back" onclick="window.location.href='index.html'">Back</button>
+                            <button class="btn btn-finish">Finish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer-content">
+                    <p class="copyright">
+                        © 2025 Confederation of Valuers — All Rights Reserved
+                    </p>
+
+                    <div class="footer-legal">
+                        <a href="faq.html">FAQ</a>
+                        <a href="TandC.html">Terms & Conditions</a>
+                        <a href="policy.html">Policy</a>
+                    </div>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Hamburger menu functionality
+        const hamburger = document.getElementById('hamburger');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            sidebar.classList.toggle('active');
+            mainContent.classList.toggle('shifted');
+        });
+
+        // Close sidebar when clicking on nav items
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 992) {
+                    hamburger.classList.remove('active');
+                    sidebar.classList.remove('active');
+                    mainContent.classList.remove('shifted');
+                }
+            });
+        });
+
+        // Dropdown functionality
+        const dropdownHeader = document.getElementById('dropdownHeader');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        const selectedAsset = document.getElementById('selectedAsset');
+        const radioButtons = document.querySelectorAll('input[name="assetClass"]');
+
+        dropdownHeader.addEventListener('click', () => {
+            dropdownHeader.classList.toggle('active');
+            dropdownMenu.classList.toggle('active');
+        });
+
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                selectedAsset.textContent = e.target.value;
+                dropdownHeader.classList.remove('active');
+                dropdownMenu.classList.remove('active');
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown')) {
+                dropdownHeader.classList.remove('active');
+                dropdownMenu.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+
+</html>
